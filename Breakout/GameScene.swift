@@ -12,10 +12,14 @@ import GameplayKit
 class GameScene: SKScene {
     
     var ball = SKShapeNode()
+    var paddle = SKSpriteNode()
+    var brick = SKSpriteNode()
     
     override func didMove(to view: SKView) {
         createBackground()
         makeBall()
+        makePaddle()
+        makeBrick()
     }
     
     func createBackground() {
@@ -37,7 +41,7 @@ class GameScene: SKScene {
         ball = SKShapeNode(circleOfRadius: 10)
         ball.position = CGPoint(x: frame.midX, y: frame.midY)
         ball.strokeColor = .black
-        ball.fillColor = .white
+        ball.fillColor = .yellow
         ball.name = "Ball"
         
         // physic shape matches ball image
@@ -57,6 +61,19 @@ class GameScene: SKScene {
         ball.physicsBody?.contactTestBitMask = (ball.physicsBody?.collisionBitMask)!
         
         addChild(ball)// add ball object to the view
+    }
+    
+    func makePaddle() {
+        paddle = SKSpriteNode(color: .white, size: CGSize(width: frame.width/4, height: 20))
+        paddle.position = CGPoint(x: frame.midX, y: frame.minY + 125)
+        paddle.name = "Paddle"
+        paddle.physicsBody = SKPhysicsBody(rectangleOf: paddle.size)
+        paddle.physicsBody?.isDynamic = false
+        addChild(paddle)
+    }
+    
+    func makeBrick() {
+        //brick = SKSpriteNode(color: .blue, size: CGSize(width: 50, height: 20))
     }
     
 }
