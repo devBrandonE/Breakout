@@ -55,7 +55,8 @@ class GameScene: SKScene {
         // does not slow down over time
         ball.physicsBody?.linearDamping = 0
         ball.physicsBody?.contactTestBitMask = (ball.physicsBody?.collisionBitMask)!
-        addChild(ball)
+        
+        addChild(ball)// add ball object to the view
     }
     
 }
