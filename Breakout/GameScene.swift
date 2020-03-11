@@ -110,4 +110,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
     }
     
+    func didBegin(_ contact: SKPhysicsContact) {
+       if contact.bodyA.node?.name == "Brick" ||
+          contact.bodyB.node?.name == "Brick" {
+             print("You win!")
+             brick.removeFromParent()
+             ball.removeFromParent()
+       }
+       if contact.bodyA.node?.name == "loseZone" ||
+          contact.bodyB.node?.name == "loseZone" {
+             print("You lose!")
+             ball.removeFromParent()
+       }
+    }
+    
 }
