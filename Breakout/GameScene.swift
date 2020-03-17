@@ -14,6 +14,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var ball = SKShapeNode()
     var paddle = SKSpriteNode()
     var brick = SKSpriteNode()
+    var bricks = [SKSpriteNode()]
     var loseZone = SKSpriteNode()
     
     override func didMove(to view: SKView) {
@@ -22,10 +23,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         createBackground()
         makeBall()
         makePaddle()
-        makeBrick()
+        makeBricks()
         makeLoseZone()
         ball.physicsBody?.isDynamic = true
-        ball.physicsBody?.applyImpulse(CGVector(dx: 3, dy: 5))
+        //ball.physicsBody?.applyImpulse(CGVector(dx: 3, dy: 5))
     }
     
     func createBackground() {
@@ -78,12 +79,37 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         addChild(paddle)
     }
     
-    func makeBrick() {
-        brick = SKSpriteNode(color: .blue, size: CGSize(width: 50, height: 20))
-        brick.position = CGPoint(x: frame.midX, y: frame.maxY - 50)
+    func makeBricks() {
+        for bick in bricks {
+            if bick.parent != nil {
+                bick.removeFromParent()
+            }
+        }
+        bricks.removeAll()
+        
+        let wideCount = Int(frame.width) / 55
+        for x in 0..<wideCount{
+            makeBrick(X: x, Y: 40, color: .blue)
+        }
+        for x in 0..<wideCount{
+            makeBrick(X: x, Y: 65, color: .green)
+        }
+        for x in 0..<wideCount{
+            makeBrick(X: x, Y: 90, color: .yellow)
+        }
+        for x in 0..<wideCount{
+            makeBrick(X: x, Y: 115, color: .red)
+        }
+    }
+    
+    func makeBrick(X: Int, Y: Int, color: UIColor) {
+        let count = Int(frame.width) / 55
+        let xOffset = (Int(frame.width) - (count * 55)) / 2 + Int(frame.minX) + 25
+        brick = SKSpriteNode(color: color, size: CGSize(width: 50, height: 20))
         brick.name = "Brick"
         brick.physicsBody = SKPhysicsBody(rectangleOf: brick.size)
         brick.physicsBody?.isDynamic = false
+        brick.position = CGPoint(x: X * 55 + xOffset, y: Int(frame.maxY) - Y)
         addChild(brick)
     }
     
@@ -111,16 +137,34 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func didBegin(_ contact: SKPhysicsContact) {
+        /*in brickO in bricks {//if brick.color == .blue
+         if contact.bodyA.node?.name == "Brick" ||
+         contact.bodyB.node?.name == "Brick" {
+         print("You win!")
+         brick.removeFromParent()
+         ball.removeFromParent()
+         }
+         }*/
         if contact.bodyA.node?.name == "Brick" ||
             contact.bodyB.node?.name == "Brick" {
-            print("You win!")
+            gameOver(win: true)
             brick.removeFromParent()
             ball.removeFromParent()
         }
         if contact.bodyA.node?.name == "loseZone" ||
             contact.bodyB.node?.name == "loseZone" {
-            print("You lose!")
+            gameOver(win: false)
             ball.removeFromParent()
+        }
+    }
+    
+    func gameOver(win: Bool){
+        
+        if (win){
+            print("You win!")
+        }
+        else{
+            print("You lose!")
         }
     }
 }
