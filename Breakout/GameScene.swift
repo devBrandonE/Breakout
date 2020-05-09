@@ -90,7 +90,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func makePaddle() {
         //paddle = SKSpriteNode(color: .white, size: CGSize(width: frame.width/4, height: 20))
-        paddle = SKSpriteNode(color: .white, size: CGSize(width: frame.width, height: 20))
+        paddle = SKSpriteNode(color: .white, size: CGSize(width: frame.width/3, height: 20))
         paddle.position = CGPoint(x: frame.midX, y: frame.minY + 125)
         paddle.name = "Paddle"
         paddle.physicsBody = SKPhysicsBody(rectangleOf: paddle.size)
