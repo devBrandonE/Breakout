@@ -16,17 +16,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var brick = SKSpriteNode()
     var bricks = [SKSpriteNode()]
     var loseZone = SKSpriteNode()
+    var playLabel = SKLabelNode()
+    var brickRemoved = 0
+    var gameOn = false
     
     override func didMove(to view: SKView) {
         physicsWorld.contactDelegate = self
         self.physicsBody = SKPhysicsBody(edgeLoopFrom: frame)
         createBackground()
-        makeBall()
-        makePaddle()
-        makeBricks()
         makeLoseZone()
-        ball.physicsBody?.isDynamic = true
-        //ball.physicsBody?.applyImpulse(CGVector(dx: 3, dy: 5))
+        makeLabels()
+        renew()
     }
     
     func createBackground() {
@@ -42,6 +42,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let moveForever = SKAction.repeatForever(moveLoop)
             starsBackground.run(moveForever)
         }
+    }
+    
+    func makeLabels() {
+        playLabel.fontSize = 36
+        playLabel.text = "Tap to start"
+        playLabel.fontName = "Ariel"
+        playLabel.position = CGPoint(x: frame.midX, y: frame.midY - 50)
+        playLabel.name = "play"
+        addChild(playLabel)
     }
     
     func makeBall() {
@@ -70,8 +79,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         addChild(ball)// add ball object to the view
     }
     
+    func makeLabel() {
+        playLabel.fontSize = 36
+        playLabel.text = "Tap to start"
+        playLabel.fontName = "Arial"
+        playLabel.position = CGPoint(x: frame.midX, y: frame.midY - 50)
+        playLabel.name = "play"
+        addChild(playLabel)
+    }
+    
     func makePaddle() {
-        paddle = SKSpriteNode(color: .white, size: CGSize(width: frame.width/4, height: 20))
+        //paddle = SKSpriteNode(color: .white, size: CGSize(width: frame.width/4, height: 20))
+        paddle = SKSpriteNode(color: .white, size: CGSize(width: frame.width, height: 20))
         paddle.position = CGPoint(x: frame.midX, y: frame.minY + 125)
         paddle.name = "Paddle"
         paddle.physicsBody = SKPhysicsBody(rectangleOf: paddle.size)
@@ -80,13 +99,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func makeBricks() {
-        for bick in bricks {
-            if bick.parent != nil {
-                bick.removeFromParent()
+        for brick in bricks {
+            if brick.parent != nil {
+                brick.removeFromParent()
             }
         }
         bricks.removeAll()
-        
+        brickRemoved = 0
         let wideCount = Int(frame.width) / 55
         for x in 0..<wideCount{
             makeBrick(X: x, Y: 40, color: .blue)
@@ -111,6 +130,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         brick.physicsBody?.isDynamic = false
         brick.position = CGPoint(x: X * 55 + xOffset, y: Int(frame.maxY) - Y)
         addChild(brick)
+        bricks.append(brick)
     }
     
     func makeLoseZone(){
@@ -122,9 +142,29 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         addChild(loseZone)
     }
     
+    func renew() {
+        ball.removeFromParent()
+        makeBall()
+        paddle.removeFromParent()
+        makePaddle()
+        makeBricks()
+        brickRemoved = 0
+    }
+    
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         for touch in touches {
             let location = touch.location(in: self)
+            if gameOn {
+                paddle.position.x = location.x
+            } else {
+                for node in nodes(at: location) {
+                    if node.name == "play" {
+                        gameOn = true
+                        node.alpha = 0
+                        kickBall()
+                    }
+                }
+            }
             paddle.position.x = location.x
         }
     }
@@ -132,39 +172,58 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         for touch in touches {
             let location = touch.location(in: self)
-            paddle.position.x = location.x
+            if gameOn {
+                paddle.position.x = location.x
+            }
         }
     }
     
+    func kickBall() {
+        ball.physicsBody?.isDynamic = true
+        ball.physicsBody?.applyImpulse(CGVector(dx: 5, dy: 5))
+    }
+    
     func didBegin(_ contact: SKPhysicsContact) {
-        /*in brickO in bricks {//if brick.color == .blue
-         if contact.bodyA.node?.name == "Brick" ||
-         contact.bodyB.node?.name == "Brick" {
-         print("You win!")
-         brick.removeFromParent()
-         ball.removeFromParent()
-         }
-         }*/
-        if contact.bodyA.node?.name == "Brick" ||
-            contact.bodyB.node?.name == "Brick" {
-            gameOver(win: true)
-            brick.removeFromParent()
-            ball.removeFromParent()
-        }
-        if contact.bodyA.node?.name == "loseZone" ||
-            contact.bodyB.node?.name == "loseZone" {
-            gameOver(win: false)
-            ball.removeFromParent()
+        for brick in bricks{
+            if contact.bodyA.node == brick ||
+                contact.bodyB.node == brick {
+                if brick.color == UIColor.blue {
+                    brick.color = UIColor.green
+                } else if brick.color == UIColor.green {
+                    brick.color = UIColor.yellow
+                } else if brick.color == UIColor.yellow {
+                    brick.color = UIColor.red
+                } else if brick.color == UIColor.red {
+                    brick.removeFromParent()
+                    brickRemoved += 1
+                    if brickRemoved == bricks.count {
+                        gameOver(win: true)
+                    }
+                }
+            }
+            /*
+            if contact.bodyA.node?.name == "Paddle" ||
+                contact.bodyB.node?.name == "Paddle" {
+                ball.physicsBody?.applyImpulse(CGVector(dx: 0.005, dy: 0.005))
+            }
+             */
+            if contact.bodyA.node?.name == "loseZone" ||
+                contact.bodyB.node?.name == "loseZone" {
+                gameOver(win: false)
+            }
         }
     }
     
     func gameOver(win: Bool){
-        
+        playLabel.fontSize = 25
+        gameOn = false
+        playLabel.alpha = 1
+        renew()
         if (win){
-            print("You win!")
+            playLabel.text = "Winner! Tap to play again"
         }
         else{
-            print("You lose!")
+            playLabel.text = "GAME OVER! Tap to play again"
         }
     }
 }
